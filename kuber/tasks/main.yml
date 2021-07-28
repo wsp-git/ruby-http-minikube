@@ -1,0 +1,10 @@
+---
+# tasks file for kuber
+
+- name: Copy app manifest
+  template:
+    src: app.yml.j2
+    dest: /tmp/app.yml
+
+- name: apply
+  shell: kubectl apply -f /tmp/app.yml

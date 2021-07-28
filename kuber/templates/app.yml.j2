@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ruby-app
+spec:
+  selector:
+    app: ruby
+  type: LoadBalancer
+  externalIPs:
+    - {{ ansible_ssh_host }}
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ruby-app
+  labels:
+    app: ruby
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ruby
+  template:
+    metadata:
+      labels:
+        app: ruby
+    spec:
+      containers:
+        - name: http-ruby-listener
+          image: imglocal/ruby_app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3

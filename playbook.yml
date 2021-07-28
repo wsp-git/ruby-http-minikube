@@ -1,0 +1,10 @@
+- hosts: all
+  gather_facts: yes
+
+  vars:  
+    home: /home/{{ ansible_user }}
+
+  roles:
+    - minikube
+    - ruby-app
+    - kuber

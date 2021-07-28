@@ -1,0 +1,16 @@
+---
+# tasks for getting minikube up and running
+
+- name: Download file from a file path
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    dest: .
+
+- name: install minikube
+  shell: |
+    install minikube-linux-amd64 /usr/local/bin/minikube
+  become: yes
+
+- name: Start Minikube
+  shell: |
+    minikube start --driver=none

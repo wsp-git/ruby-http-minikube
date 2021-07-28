@@ -1,0 +1,5 @@
+---
+# select OS
+- include: ubuntu.yml
+  when: ansible_os_family == 'Ubuntu' or ansible_os_family == 'Debian'
+

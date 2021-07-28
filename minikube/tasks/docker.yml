@@ -1,0 +1,39 @@
+---
+# tasks for setting up docker
+
+- name: Install aptitude using apt
+  apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+  become: yes
+
+- name: Install required system packages
+  apt: name={{ item }} state=latest update_cache=yes
+  loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'gnupg', 'lsb-release', 'python3-pip', 'virtualenv', 'python3-setuptools']
+  become: yes
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: yes
+
+- shell: echo "$(lsb_release -cs)"
+  register: lsb_release
+    
+- set_fact:
+    ubuntu: "{{ lsb_release.stdout }}"
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ubuntu }} stable
+    state: present
+  become: yes
+
+- name: Install Docker
+  apt: name={{ item }} state=latest update_cache=yes
+  loop: [ 'docker-ce', 'docker-ce-cli', 'containerd.io']
+  become: yes
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+  become: yes

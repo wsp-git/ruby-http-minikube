@@ -1,0 +1,79 @@
+---
+# prepare docker
+- name: check if docker is installed
+  shell: "which docker"
+  register: result
+  ignore_errors: true
+
+- fail:
+    msg: "Docker not installed"
+  when: result.rc != 0
+  ignore_errors: true
+
+# install dockers if not found
+- include: docker.yml
+  when: result.rc != 0
+
+- name: adding existing user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  become: yes
+
+- name: reset ssh connection to allow user changes to affect 'current login user'
+  meta: reset_connection
+
+- name: get installed version of docker
+  shell: docker version
+  register: docker
+
+- name: Print out version
+  debug:
+    msg: "{{ docker.stdout_lines }}"
+
+# prepare minikube
+- name: check if minikube is installed
+  shell: "which minikube"
+  register: result
+  ignore_errors: true
+
+- fail:
+    msg: "Minikube not installed"
+  when: result.rc != 0
+  ignore_errors: true
+
+# install minikube if not found
+- include: minikube.yml
+  when: result.rc != 0
+
+- name: get installed version of minikube
+  shell: minikube version
+  register: miniver
+
+- name: Print out version
+  debug:
+    msg: "{{ miniver.stdout_lines }}"
+
+# prepare kubectl
+- name: check if kubectl is present
+  shell: "which kubectl"
+  register: kube
+  ignore_errors: true
+
+- fail:
+    msg: "Kubectl not installed"
+  when: kube.rc != 0
+  ignore_errors: true
+
+# install kubectl if not found
+- include: kubectl.yml
+  when: kube.rc != 0
+
+- name: get installed version of kubectl
+  shell: kubectl version --client
+  register: kubever
+
+- name: Print out version
+  debug:
+    msg: "{{ kubever.stdout_lines }}"

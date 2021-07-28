@@ -1,0 +1,41 @@
+---
+# tasks file for ruby-app building
+
+- name: Install required system packages
+  apt: name={{ item }} state=latest update_cache=yes
+  loop: ['python3-pip', 'virtualenv', 'python3-setuptools']
+  become: yes
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+  become: yes
+
+- copy:
+    src: '{{ item }}'
+    dest: '{{ home }}'
+  loop:
+    - Dockerfile
+    - http_server.rb
+    - build.sh
+
+- name: check if minikube is not running
+  command: minikube status
+  register: mini_status
+  changed_when: false
+  ignore_errors: true
+
+- name: start minikube if it wasnt running
+  command: minikube start --driver=none
+  when: "not mini_status.stdout or 'Running' not in mini_status.stdout"
+
+- name: Set exec bit for script
+  file:
+    path: '{{ home }}/build.sh'
+    mode: u=rwx,g=rwx,o=rx        
+
+- name: Exec in remote shell; write logs
+  script: build.sh >> build_log.txt
+  args:
+    chdir: '{{ home }}'
+    executable: /bin/bash
